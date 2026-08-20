@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* ── Design tokens ────────────────────────────────────────────────
+   Every generated site is driven by these. The AI only ever picks
+   an accent + mode; the rest is fixed so quality never regresses.  */
+
+@theme {
+  --font-display: var(--f-display), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--f-body), ui-sans-serif, system-ui, sans-serif;
+
+  /* Type scale — fluid, tight tracking on large sizes is the single
+     biggest "expensive design" tell. */
+  --text-display: clamp(2.5rem, 1.5rem + 3.6vw, 4rem);
+  --text-display--line-height: 0.94;
+  --text-display--letter-spacing: -0.047em;
+
+  --text-h2: clamp(2rem, 1.1rem + 3.6vw, 3.875rem);
+  --text-h2--line-height: 1.06;
+  --text-h2--letter-spacing: -0.032em;
+
+  --text-h3: clamp(1.5rem, 1.15rem + 1.4vw, 2.25rem);
+  --text-h3--line-height: 1.17;
+  --text-h3--letter-spacing: -0.04em;
+
+  --text-h4: 1.25rem;
+  --text-h4--line-height: 1.3;
+  --text-h4--letter-spacing: -0.022em;
+
+  --text-lead: clamp(0.9375rem, 0.9rem + 0.25vw, 1.0625rem);
+  --text-lead--line-height: 1.5;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.43;
+
+  /* Vertical rhythm — generous section padding reads as confidence. */
+  --spacing-section: clamp(5rem, 3rem + 8vw, 9.5rem);
+
+  --radius-card: 12px;
+  --radius-pill: 40px;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Runtime-swappable palette. The generator writes --accent + mode. */
+:root {
+  --f-display: "Inter", sans-serif;
+  --f-body: "Inter", sans-serif;
+
+  --accent: #ff7d00;
+  --accent-ink: #140900;
+  --accent-2: #dfba00;
+
+  --bg: #070707;
+  --bg-raise: #111010;
+  --bg-card: #1a1918;
+  --ink: #f7f7fd;
+  --ink-muted: #ababba;
+  --line: #ffffff14;
+  --line-strong: #ffffff1f;
+}
+
+[data-mode="light"] {
+  --bg: #fbfbfc;
+  --bg-raise: #f4f4f6;
+  --bg-card: #ffffff;
+  --ink: #111010;
+  --ink-muted: #6b6b78;
+  --line: rgb(17 16 16 / 0.10);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-raise: var(--bg-raise);
+  --color-bg-card: var(--bg-card);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-2: var(--accent-2);
+  --color-line-strong: var(--line-strong);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* Container: 1200px is the sweet spot — wider reads like a dashboard. */
+.container-x { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 1.5rem; }
+
+/* Ambient glow behind hero. Subtle > visible. */
+.glow::before {
+  content: "";
+  position: absolute;
+  inset: -40% 0 auto 50%;
+  translate: -50% 0;
+  width: min(1100px, 130%);
+  aspect-ratio: 1;
+  background: radial-gradient(circle at center, var(--accent) 0%, transparent 62%);
+  opacity: 0.16;
+  filter: blur(20px);
+  pointer-events: none;
+}
+[data-mode="light"] .glow::before { opacity: 0.13; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Marquee rail — duplicate the track once for a seamless loop. */
+@keyframes marquee-x { to { transform: translateX(-50%); } }
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-x 38s linear infinite;
+}
+.marquee-mask:hover .marquee-track { animation-play-state: paused; }
+
+/* Oversized wordmark — clipped gradient, the classic premium footer close. */
+.wordmark {
+  font-size: clamp(4rem, 16vw, 15rem);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  background: linear-gradient(to bottom, var(--ink) 8%, transparent 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.14;
+}
+
+/* Mobile type tuning — tracking tightens and the display line-height
+   closes up, while the section heading opens out. Measured, not scaled. */
+@media (max-width: 640px) {
+  :root {
+    --text-display--line-height: 0.9;
+    --text-display--letter-spacing: -0.05em;
+    --text-h2--line-height: 1.19;
+    --text-h2--letter-spacing: -0.034em;
+  }
+}
