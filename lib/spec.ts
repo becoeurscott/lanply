@@ -58,6 +58,38 @@ export type Block =
       columns: string[];
       rows: { label: string; values: (boolean | string)[] }[];
     }
+  | {
+      type: "plans";
+      eyebrow?: string;
+      heading: string;
+      sub?: string;
+      /** Risk-reversal line under the selector, e.g. trial + cancel terms. */
+      note?: string;
+      terms: {
+        id: string;
+        label: string;
+        rate: string;
+        unit?: string;
+        billed: string;
+        save?: string;
+        intro?: string;
+        credits: string;
+        featured?: boolean;
+        cta: Cta;
+      }[];
+      /** Shared across every term — listed once, not repeated per card. */
+      includes: string[];
+    }
+  | {
+      type: "addons";
+      eyebrow?: string;
+      heading: string;
+      sub?: string;
+      groups: {
+        title: string;
+        items: { name: string; price: string; note?: string }[];
+      }[];
+    }
   | { type: "wordmark"; text: string }
   | { type: "footer"; logo: string; blurb?: string; columns?: { title: string; links: Cta[] }[]; legal?: string };
 

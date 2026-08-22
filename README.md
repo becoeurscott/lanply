@@ -1,68 +1,94 @@
-# Lanply
+# Nexus Site
 
-AI-generated premium landing pages. Client fills a brief, AI produces a **site
-spec**, a deterministic renderer turns that spec into a real Next.js site, and
-the client refines it by chatting. Output deploys to Vercel or ships as a
-project folder the client owns.
+Premium websites for small businesses. **Free to see, $20/month to keep live.**
 
-## The core idea
+A visitor answers five questions and immediately sees a real page for their
+business at no cost. If they want it on their own domain, they subscribe — and
+a person builds, finishes and deploys the final site by hand within 2–3 days.
 
-The AI never writes CSS. It only produces this:
+This is a productized service with a subscription wrapper, not a self-serve
+site builder. Customers never log into an editor.
+
+## The model
+
+| | |
+|---|---|
+| Free preview | Automated, ~$0.10 in API cost, no human time |
+| Base plan | $20/mo — domain, hosting, SSL, CDN, changes by chat |
+| Term discounts | $17 (3mo) · $15 (6mo) · **$12 (12mo)** |
+| Trial | 7 days free, cancel anytime |
+| Add-ons | Payments, store, booking, automation, SEO, logo, email |
+| Buyout | $299 one-off for the full repository |
+
+The free preview exists so no human hours are spent before payment. Prepaid
+terms are what make the manual build economically viable — a $144 annual plan
+covers a build immediately.
+
+## Architecture
+
+The AI never writes CSS. It emits a schema-validated **SiteSpec**; a
+deterministic renderer turns that into a page using hand-built blocks.
 
 ```
-brief ──▶ AI ──▶ SiteSpec (JSON, ~1-2k tokens) ──▶ Renderer ──▶ Next.js site
-                      ▲                                              │
-                      └────────── chat edit mutates spec ────────────┘
+brief ──▶ Claude ──▶ SiteSpec (JSON) ──▶ Renderer ──▶ page
 ```
 
-Why this matters:
-
-| Free-form AI codegen | Spec-driven (this) |
-| --- | --- |
-| Quality varies per generation | Quality floor is fixed by the block library |
-| Edits can break layout | Edits cannot break layout |
-| Full regeneration per edit (~$$) | Small JSON diff per edit (~$0.001) |
-| Nothing compounds | Every new block improves every future site |
+Quality is bounded by the block library, not by the model. Malformed output
+fails validation instead of producing a broken page.
 
 ## Layout
 
 ```
-app/globals.css        Design tokens — type scale, rhythm, motion, palette
-lib/spec.ts            SiteSpec schema — the AI's only output contract
-lib/demo-spec.ts       Example spec (also Lanply's own landing page)
+app/globals.css          Design tokens — type scale, rhythm, motion, palette
+app/brief/               Five-question intake
+app/api/generate/        brief -> SiteSpec (claude-opus-5, zod-validated)
+app/p/[id]/              Renders any stored spec
+lib/spec.ts              SiteSpec types — the renderer's contract
+lib/site-schema.ts       Zod mirror — the model's output contract
+lib/demo-spec.ts         Nexus Site's own landing page
+lib/store.ts             File-backed spec store (replace before production)
+components/blocks/       18 hand-built premium sections
 components/Renderer.tsx  spec.blocks -> React
-components/blocks/     The asset: hand-built premium sections
-components/ui.tsx      Section / Button / Card / Eyebrow primitives
-components/Reveal.tsx  Shared scroll-motion signature
 ```
 
 ## Run
 
-```
+```bash
 npm install
 npm run dev
 ```
 
-## What makes the output read as "premium"
+Generation needs a key:
 
-These are encoded in `globals.css` and the blocks, so every generated site gets
-them for free:
+```bash
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env.local
+```
 
-1. **Tight tracking on large type** (`-0.035em` at display size). The single
-   strongest signal of paid design work.
-2. **Fluid type scale** via `clamp()` — no breakpoint jumps.
-3. **Generous vertical rhythm** — sections at `clamp(5rem, 8vw, 9.5rem)`.
-4. **Restrained palette** — two neutrals, one accent, borders at ~9% opacity.
-5. **One motion signature** — 0.6s, `cubic-bezier(0.16,1,0.3,1)`, 70ms stagger.
-6. **1200px container** — wider starts reading like a dashboard.
-7. **Ambient accent glow** at 16% opacity behind hero and final CTA.
+## Design system
 
-## Roadmap
+Encoded in `app/globals.css`, so every page inherits it:
 
-- [ ] Intake form (`/brief`) — the client-facing questionnaire
-- [ ] `POST /api/generate` — brief -> SiteSpec via Claude, schema-validated
-- [ ] `POST /api/edit` — chat message + current spec -> patched spec
-- [ ] Preview route `/p/[id]` rendering any stored spec
-- [ ] Exporter — spec -> zipped standalone Next.js project
-- [ ] Vercel deploy integration
-- [ ] More blocks: gallery, team, timeline, contact form, blog index
+1. **Tight tracking on large type** — −0.047em at display size, −0.05em on mobile
+2. **Optical sizing** — Inter's `opsz` axis, so headings use the display cut
+3. **Moderate heading sizes, small body** — 64px/14px desktop, 40px/14px mobile.
+   The contrast does the work, not absolute size
+4. **Weight 500 on headings**, not 600
+5. **Layered near-blacks** — `#070707` → `#111010` → `#1a1918`
+6. **One motion signature** — 600ms, `cubic-bezier(0.16,1,0.3,1)`, 70ms stagger
+7. **12px card radius against 40px pills** — deliberate contrast
+
+## Content rules
+
+No fabricated testimonials, customer names, or statistics — on this page or any
+generated one. The `testimonial` and `stats` blocks stay out of the landing page
+until there are real customers to quote.
+
+## Not built yet
+
+- Accounts, Stripe subscriptions, trial and term billing
+- Customer dashboard: build status, ETA, credit balance
+- Modification chat with GitHub repo access
+- Admin build queue
+
+Until these exist, everything after "go live" is manual. `lib/store.ts` writes
+to disk and will not survive on Vercel — that needs a database first.

@@ -131,6 +131,48 @@ const CtaBlock = z.object({
   secondary: Cta.nullable(),
 });
 
+const PlansBlock = z.object({
+  type: z.literal("plans"),
+  eyebrow: z.string().nullable(),
+  heading: z.string(),
+  sub: z.string().nullable(),
+  note: z.string().nullable(),
+  terms: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      rate: z.string(),
+      unit: z.string().nullable(),
+      billed: z.string(),
+      save: z.string().nullable(),
+      intro: z.string().nullable(),
+      credits: z.string(),
+      featured: z.boolean().nullable(),
+      cta: Cta,
+    }),
+  ),
+  includes: z.array(z.string()),
+});
+
+const AddonsBlock = z.object({
+  type: z.literal("addons"),
+  eyebrow: z.string().nullable(),
+  heading: z.string(),
+  sub: z.string().nullable(),
+  groups: z.array(
+    z.object({
+      title: z.string(),
+      items: z.array(
+        z.object({
+          name: z.string(),
+          price: z.string(),
+          note: z.string().nullable(),
+        }),
+      ),
+    }),
+  ),
+});
+
 const WordmarkBlock = z.object({ type: z.literal("wordmark"), text: z.string() });
 
 const FooterBlock = z.object({
@@ -158,6 +200,8 @@ export const BlockSchema = z.discriminatedUnion("type", [
   PricingBlock,
   FaqBlock,
   CtaBlock,
+  PlansBlock,
+  AddonsBlock,
   WordmarkBlock,
   FooterBlock,
 ]);

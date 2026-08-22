@@ -15,6 +15,8 @@ import { Bento } from "@/components/blocks/Bento";
 import { Process } from "@/components/blocks/Process";
 import { Compare } from "@/components/blocks/Compare";
 import { Wordmark } from "@/components/blocks/Wordmark";
+import { Plans } from "@/components/blocks/Plans";
+import { Addons } from "@/components/blocks/Addons";
 
 function renderBlock(b: Block, i: number) {
   switch (b.type) {
@@ -32,6 +34,8 @@ function renderBlock(b: Block, i: number) {
     case "bento": return <Bento key={i} {...b} />;
     case "process": return <Process key={i} {...b} />;
     case "compare": return <Compare key={i} {...b} />;
+    case "plans": return <Plans key={i} {...b} />;
+    case "addons": return <Addons key={i} {...b} />;
     case "wordmark": return <Wordmark key={i} {...b} />;
     case "footer": return <Footer key={i} {...b} />;
   }
