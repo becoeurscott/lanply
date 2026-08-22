@@ -12,7 +12,7 @@ const rise = {
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-export function Hero({ eyebrow, headline, sub, primary, secondary, image, visual }: P) {
+export function Hero({ eyebrow, headline, sub, primary, secondary, image, visual, note }: P) {
   return (
     <section className="glow relative overflow-hidden pt-32 pb-section sm:pt-40">
       <div className="container-x relative">
@@ -41,6 +41,11 @@ export function Hero({ eyebrow, headline, sub, primary, secondary, image, visual
               </Button>
             )}
           </motion.div>
+          {note && (
+            <motion.p variants={rise} className="mt-6 text-xs text-ink-muted">
+              {note}
+            </motion.p>
+          )}
         </motion.div>
 
         {(image || visual === "mockup") && (

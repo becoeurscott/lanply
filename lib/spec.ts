@@ -18,6 +18,8 @@ export type Block =
       image?: string;
       /** Code-drawn product mockup, shown when no image is supplied. */
       visual?: "mockup";
+      /** Small print under the buttons — pricing caveats, cancellation terms. */
+      note?: string;
     }
   | { type: "logos"; caption?: string; items: string[] }
   | {
@@ -75,7 +77,7 @@ export type Block =
         billed: string;
         save?: string;
         intro?: string;
-        credits: string;
+        credits?: string;
         featured?: boolean;
         cta: Cta;
       }[];

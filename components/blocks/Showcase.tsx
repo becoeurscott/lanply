@@ -8,7 +8,7 @@ type P = Extract<Block, { type: "showcase" }>;
 export function Showcase({ heading, body, bullets, image, flip }: P) {
   return (
     <Section>
-      <div className="grid items-center gap-14 lg:grid-cols-2">
+      <div className={`grid items-center gap-14 ${image ? "lg:grid-cols-2" : "mx-auto max-w-2xl text-center"}`}>
         <Reveal className={flip ? "lg:order-2" : ""}>
           <h2 className="font-display text-h2 font-medium text-balance">{rich(heading)}</h2>
           <p className="mt-5 text-lead text-ink-muted text-pretty">{body}</p>
@@ -24,14 +24,14 @@ export function Showcase({ heading, body, bullets, image, flip }: P) {
           )}
         </Reveal>
 
-        <Reveal delay={0.12} className={flip ? "lg:order-1" : ""}>
-          <div className="aspect-[4/3] overflow-hidden rounded-card border border-line bg-bg-raise">
-            {image && (
-              // eslint-disable-next-line @next/next/no-img-element
+        {image && (
+          <Reveal delay={0.12} className={flip ? "lg:order-1" : ""}>
+            <div className="aspect-[4/3] overflow-hidden rounded-card border border-line bg-bg-raise">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={image} alt="" className="size-full object-cover" />
-            )}
-          </div>
-        </Reveal>
+            </div>
+          </Reveal>
+        )}
       </div>
     </Section>
   );

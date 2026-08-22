@@ -22,6 +22,7 @@ const HeroBlock = z.object({
   primary: Cta,
   secondary: Cta.nullable(),
   visual: z.enum(["mockup"]).nullable(),
+  note: z.string().nullable(),
 });
 
 const MarqueeBlock = z.object({
@@ -147,7 +148,7 @@ const PlansBlock = z.object({
       billed: z.string(),
       save: z.string().nullable(),
       intro: z.string().nullable(),
-      credits: z.string(),
+      credits: z.string().nullable(),
       featured: z.boolean().nullable(),
       cta: Cta,
     }),

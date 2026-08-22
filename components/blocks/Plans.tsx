@@ -88,7 +88,7 @@ export function Plans({ eyebrow, heading, sub, note, terms, includes }: P) {
               {term.save && (
                 <p className="mb-3 font-display text-h4 font-medium text-accent">{term.save}</p>
               )}
-              <p className="mb-5 text-sm text-ink-muted">{term.credits}</p>
+              {term.credits && <p className="mb-5 text-sm text-ink-muted">{term.credits}</p>}
               <Button href={term.cta.href}>{term.cta.label}</Button>
             </div>
           </div>
