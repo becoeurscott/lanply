@@ -151,3 +151,7 @@ body {
     --text-h2--letter-spacing: -0.034em;
   }
 }
+
+/* Horizontal pill rails scroll rather than wrap; the bar itself is noise. */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
