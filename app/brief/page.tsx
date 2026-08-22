@@ -1,130 +1,521 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { demoSpec } from "@/lib/demo-spec";
 
-/* The client-facing intake. Deliberately five plain questions — asking for
-   design vocabulary is how briefs get abandoned. The answers are stitched
-   into one prose brief for the generator. */
+/* Onboarding.
 
-const QUESTIONS = [
-  {
-    key: "business",
-    label: "What is the business, and what do you sell?",
-    placeholder: "We roast coffee in Lyon and sell subscriptions to offices and homes.",
-    rows: 3,
-  },
-  {
-    key: "audience",
-    label: "Who buys it, and what problem does it solve for them?",
-    placeholder: "Office managers who are tired of bad coffee and want one supplier they can trust.",
-    rows: 3,
-  },
-  {
-    key: "different",
-    label: "Why should someone pick you over the alternatives?",
-    placeholder: "We roast to order, deliver within 48 hours, and there is no minimum contract.",
-    rows: 3,
-  },
-  {
-    key: "proof",
-    label: "Any real numbers, prices, customers or quotes we can use?",
-    placeholder: "Prices from €29/month. 400 offices in France. Quote from Marie at Studio Nord.",
-    rows: 4,
-  },
-  {
-    key: "tone",
-    label: "Brand colour, font, and the tone you want. Anything you hate?",
-    placeholder: "Deep green, warm and human but not cute. No corporate jargon.",
-    rows: 3,
-  },
-] as const;
+   Five short steps rather than one long form — a wall of textareas is where
+   briefs get abandoned. Answers persist to localStorage so a refresh or a
+   phone call mid-flow doesn't cost the customer their work.
 
-type Answers = Record<string, string>;
+   The brief is saved BEFORE checkout is attempted, so a lead is captured
+   even when payments aren't configured or the customer bails at Stripe. */
 
-export default function BriefPage() {
-  const router = useRouter();
-  const [answers, setAnswers] = useState<Answers>({});
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const plansBlock = demoSpec.blocks.find((b) => b.type === "plans");
+const TERMS = plansBlock?.type === "plans" ? plansBlock.terms : [];
 
-  const filled = QUESTIONS.filter((q) => (answers[q.key] ?? "").trim().length > 0).length;
-  const ready = filled >= 3;
+const TYPES = [
+  "Restaurant or café",
+  "Salon or barber",
+  "Trades & home services",
+  "Clinic or health",
+  "Consultant",
+  "Coach",
+  "Creator",
+  "Online store",
+  "Agency",
+  "Something else",
+];
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
+const GOALS = [
+  "Get enquiries",
+  "Take bookings",
+  "Sell products",
+  "Show a portfolio",
+  "Look credible",
+  "Show menu or prices",
+  "Build an email list",
+];
 
-    const brief = QUESTIONS.map((q) => {
-      const a = (answers[q.key] ?? "").trim();
-      return a ? `${q.label}\n${a}` : null;
-    })
-      .filter(Boolean)
-      .join("\n\n");
+const TONES = ["Professional", "Warm and friendly", "Bold and modern", "Calm and premium", "Playful"];
 
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brief }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Something went wrong.");
-      router.push(data.url);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-      setBusy(false);
+const ADDON_OPTIONS = [
+  { id: "booking", label: "Online Booking", price: "+$9/mo", note: "Customers book appointments from your site." },
+  { id: "automation", label: "Business Automation", price: "+$19/mo", note: "Capture leads and trigger follow-ups." },
+];
+
+const STEPS = ["Your business", "Your customers", "Look & feel", "Your plan", "Your details"];
+const STORAGE_KEY = "nexus_onboarding_v1";
+
+type Data = {
+  business: { name: string; sells: string; type: string };
+  customers: { who: string; goals: string[] };
+  style: { colour: string; tone: string; hasLogo: string; existingSite: string };
+  plan: { term: string; addons: string[] };
+  contact: { name: string; email: string; phone: string; domain: string; domainName: string };
+};
+
+const EMPTY: Data = {
+  business: { name: "", sells: "", type: "" },
+  customers: { who: "", goals: [] },
+  style: { colour: "", tone: "", hasLogo: "", existingSite: "" },
+  plan: { term: TERMS.find((t) => t.featured)?.id ?? "monthly", addons: [] },
+  contact: { name: "", email: "", phone: "", domain: "", domainName: "" },
+};
+
+/* ── Field primitives ─────────────────────────────────────────── */
+
+function Label({ children, hint }: { children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="mb-3">
+      <span className="font-display text-h4 font-medium">{children}</span>
+      {hint && <span className="mt-1 block text-sm text-ink-muted">{hint}</span>}
+    </div>
+  );
+}
+
+const fieldClass =
+  "w-full rounded-card border border-line bg-bg-card p-4 text-sm leading-relaxed outline-none transition-colors placeholder:text-ink-muted/50 focus:border-accent";
+
+function Choice({
+  options,
+  value,
+  onChange,
+  multi = false,
+}: {
+  options: { id: string; label: string; note?: string; price?: string }[];
+  value: string | string[];
+  onChange: (v: never) => void;
+  multi?: boolean;
+}) {
+  const selected = (id: string) => (multi ? (value as string[]).includes(id) : value === id);
+
+  function toggle(id: string) {
+    if (multi) {
+      const list = value as string[];
+      onChange((list.includes(id) ? list.filter((x) => x !== id) : [...list, id]) as never);
+    } else {
+      onChange((value === id ? "" : id) as never);
     }
   }
 
   return (
-    <main className="container-x max-w-2xl py-24">
-      <h1 className="font-display text-h2 font-medium text-balance">
-        Tell us about the business
-      </h1>
-      <p className="mt-5 text-lead text-ink-muted text-pretty">
-        Five questions, about five minutes. Answer in plain language — no design words needed.
-        Skip anything that does not apply.
-      </p>
+    <div className="grid gap-2.5 sm:grid-cols-2">
+      {options.map((o) => {
+        const on = selected(o.id);
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => toggle(o.id)}
+            aria-pressed={on}
+            className="rounded-card border p-4 text-left"
+            style={{
+              borderColor: on ? "var(--accent)" : "var(--line)",
+              background: on ? "color-mix(in oklab, var(--accent) 10%, var(--bg-card))" : "var(--bg-card)",
+              transition: "border-color 250ms cubic-bezier(0.16,1,0.3,1), background 250ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+          >
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-sm font-medium">{o.label}</span>
+              {o.price && <span className="shrink-0 text-sm text-accent tabular-nums">{o.price}</span>}
+            </div>
+            {o.note && <span className="mt-1 block text-xs text-ink-muted">{o.note}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
-      <form onSubmit={submit} className="mt-14 space-y-10">
-        {QUESTIONS.map((q, i) => (
-          <div key={q.key}>
-            <label htmlFor={q.key} className="flex gap-3 font-display text-h4 font-medium">
-              <span className="text-ink-muted tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-              {q.label}
-            </label>
-            <textarea
-              id={q.key}
-              rows={q.rows}
-              value={answers[q.key] ?? ""}
-              placeholder={q.placeholder}
-              onChange={(e) => setAnswers((a) => ({ ...a, [q.key]: e.target.value }))}
-              className="mt-4 w-full resize-y rounded-card border border-line bg-bg-card p-4 text-sm leading-relaxed transition-colors outline-none placeholder:text-ink-muted/50 focus:border-accent"
-            />
-          </div>
-        ))}
+/* ── Page ─────────────────────────────────────────────────────── */
+
+export default function BriefPage() {
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState<Data>(EMPTY);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [received, setReceived] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  // Restore once on mount, then persist on every change.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setData({ ...EMPTY, ...JSON.parse(saved) });
+    } catch {
+      /* corrupt or unavailable storage is not worth surfacing */
+    }
+    setRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      /* private mode, quota — the form still works in memory */
+    }
+  }, [data, restored]);
+
+  function set<K extends keyof Data>(key: K, patch: Partial<Data[K]>) {
+    setData((d) => ({ ...d, [key]: { ...d[key], ...patch } }));
+  }
+
+  const valid = [
+    data.business.name.trim().length > 0 && data.business.sells.trim().length >= 10,
+    true, // step 2 is optional — better a thin brief than an abandoned one
+    true,
+    Boolean(data.plan.term),
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contact.email.trim()),
+  ];
+
+  const term = TERMS.find((t) => t.id === data.plan.term);
+
+  async function submit() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const saved = await res.json();
+      if (!res.ok) throw new Error(saved?.error ?? "Could not save your details.");
+
+      // Brief is safe. Now try to start checkout.
+      const co = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ term: data.plan.term, addons: data.plan.addons, briefId: saved.id }),
+      });
+      const checkout = await co.json();
+
+      if (co.ok && checkout?.url) {
+        localStorage.removeItem(STORAGE_KEY);
+        window.location.href = checkout.url;
+        return;
+      }
+
+      // Payments not configured yet — the brief is still captured.
+      localStorage.removeItem(STORAGE_KEY);
+      setReceived(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (received) {
+    return (
+      <main className="container-x flex min-h-screen max-w-xl flex-col justify-center py-24">
+        <span className="w-fit rounded-pill border border-line bg-bg-raise px-3.5 py-1.5 text-xs font-medium tracking-wide text-ink-muted uppercase">
+          Received
+        </span>
+        <h1 className="mt-7 font-display text-h2 font-medium text-balance">
+          Thanks — we have <span className="text-accent">everything we need</span>
+        </h1>
+        <p className="mt-5 text-lead text-ink-muted text-pretty">
+          We&rsquo;ll email {data.contact.email} within one working day to confirm your plan and get
+          started on your website.
+        </p>
+        <Link
+          href="/"
+          className="mt-9 inline-flex w-fit items-center justify-center rounded-pill border border-line px-6 py-3 text-sm font-medium transition-colors hover:bg-bg-raise"
+        >
+          Back to home
+        </Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className="container-x max-w-2xl py-20 sm:py-24">
+      <Link href="/" className="font-display text-[15px] font-semibold tracking-tight">
+        Nexus Site
+      </Link>
+
+      {/* Progress */}
+      <div className="mt-10">
+        <div className="flex items-baseline justify-between">
+          <p className="text-xs font-medium tracking-widest text-ink-muted uppercase">
+            Step {step + 1} of {STEPS.length}
+          </p>
+          <p className="text-xs text-ink-muted">{STEPS[step]}</p>
+        </div>
+        <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-bg-raise">
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${((step + 1) / STEPS.length) * 100}%`,
+              background: "var(--accent)",
+              transition: "width 400ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-12 space-y-10">
+        {step === 0 && (
+          <>
+            <div>
+              <Label>What is your business called?</Label>
+              <input
+                className={fieldClass}
+                value={data.business.name}
+                placeholder="Kettle Coffee"
+                onChange={(e) => set("business", { name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label hint="A couple of sentences is plenty.">What do you sell or do?</Label>
+              <textarea
+                rows={4}
+                className={fieldClass}
+                value={data.business.sells}
+                placeholder="We roast coffee and deliver subscriptions to offices across the city."
+                onChange={(e) => set("business", { sells: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>What kind of business is it?</Label>
+              <Choice
+                options={TYPES.map((t) => ({ id: t, label: t }))}
+                value={data.business.type}
+                onChange={(v) => set("business", { type: v })}
+              />
+            </div>
+          </>
+        )}
+
+        {step === 1 && (
+          <>
+            <div>
+              <Label hint="Who are they, and what problem are you solving?">
+                Who buys from you?
+              </Label>
+              <textarea
+                rows={4}
+                className={fieldClass}
+                value={data.customers.who}
+                placeholder="Office managers who want good coffee without managing three suppliers."
+                onChange={(e) => set("customers", { who: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label hint="Pick as many as apply.">What should the website do for you?</Label>
+              <Choice
+                multi
+                options={GOALS.map((g) => ({ id: g, label: g }))}
+                value={data.customers.goals}
+                onChange={(v) => set("customers", { goals: v })}
+              />
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <div>
+              <Label hint="Leave blank and we&rsquo;ll choose one that suits your industry.">
+                Brand colour
+              </Label>
+              <input
+                className={fieldClass}
+                value={data.style.colour}
+                placeholder="#1f6f4a, or just say 'deep green'"
+                onChange={(e) => set("style", { colour: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>How should it sound?</Label>
+              <Choice
+                options={TONES.map((t) => ({ id: t, label: t }))}
+                value={data.style.tone}
+                onChange={(v) => set("style", { tone: v })}
+              />
+            </div>
+            <div>
+              <Label>Do you have a logo?</Label>
+              <Choice
+                options={[
+                  { id: "yes", label: "Yes, I have one" },
+                  { id: "no", label: "Not yet", note: "We offer one for $49 as an add-on." },
+                ]}
+                value={data.style.hasLogo}
+                onChange={(v) => set("style", { hasLogo: v })}
+              />
+            </div>
+            <div>
+              <Label hint="Optional — helpful if you have one we should look at.">
+                Existing website
+              </Label>
+              <input
+                className={fieldClass}
+                value={data.style.existingSite}
+                placeholder="www.yourbusiness.com"
+                onChange={(e) => set("style", { existingSite: e.target.value })}
+              />
+            </div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <div>
+              <Label hint="All plans include 7 days free. Longer terms cost less per month.">
+                Choose your plan
+              </Label>
+              <Choice
+                options={TERMS.map((t) => ({
+                  id: t.id,
+                  label: t.label,
+                  price: `${t.rate}${t.unit ?? ""}`,
+                  note: t.save ? `${t.billed} ${t.save}` : t.billed,
+                }))}
+                value={data.plan.term}
+                onChange={(v) => set("plan", { term: v })}
+              />
+            </div>
+            <div>
+              <Label hint="Optional. You can add these later too.">Add-ons</Label>
+              <Choice
+                multi
+                options={ADDON_OPTIONS}
+                value={data.plan.addons}
+                onChange={(v) => set("plan", { addons: v })}
+              />
+            </div>
+          </>
+        )}
+
+        {step === 4 && (
+          <>
+            <div>
+              <Label>Your name</Label>
+              <input
+                className={fieldClass}
+                value={data.contact.name}
+                placeholder="Alex Moreau"
+                onChange={(e) => set("contact", { name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label hint="Where we send your website link and receipt.">Email</Label>
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                className={fieldClass}
+                value={data.contact.email}
+                placeholder="you@yourbusiness.com"
+                onChange={(e) => set("contact", { email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label hint="Optional.">Phone</Label>
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                className={fieldClass}
+                value={data.contact.phone}
+                onChange={(e) => set("contact", { phone: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Do you have a domain?</Label>
+              <Choice
+                options={[
+                  { id: "have", label: "Yes, I own one" },
+                  { id: "need", label: "No, I need one", note: "Priced separately by extension." },
+                ]}
+                value={data.contact.domain}
+                onChange={(v) => set("contact", { domain: v })}
+              />
+              {data.contact.domain && (
+                <input
+                  className={`${fieldClass} mt-3`}
+                  value={data.contact.domainName}
+                  placeholder={
+                    data.contact.domain === "have" ? "yourbusiness.com" : "A name you have in mind"
+                  }
+                  onChange={(e) => set("contact", { domainName: e.target.value })}
+                />
+              )}
+            </div>
+
+            {term && (
+              <div className="rounded-card border border-line bg-bg-card p-5">
+                <p className="text-xs font-medium tracking-widest text-ink-muted uppercase">
+                  Your selection
+                </p>
+                <div className="mt-3 flex items-baseline justify-between gap-4">
+                  <span className="text-sm">{term.label}</span>
+                  <span className="font-display text-sm font-medium text-accent">
+                    {term.rate}
+                    {term.unit}
+                  </span>
+                </div>
+                {data.plan.addons.map((a) => {
+                  const addon = ADDON_OPTIONS.find((o) => o.id === a);
+                  return addon ? (
+                    <div key={a} className="mt-2 flex items-baseline justify-between gap-4">
+                      <span className="text-sm text-ink-muted">{addon.label}</span>
+                      <span className="text-sm text-ink-muted">{addon.price}</span>
+                    </div>
+                  ) : null;
+                })}
+                <p className="mt-4 border-t border-line pt-4 text-xs text-ink-muted">
+                  7 days free. You won&rsquo;t be charged today.
+                </p>
+              </div>
+            )}
+          </>
+        )}
 
         {error && (
-          <p role="alert" className="rounded-card border border-line bg-bg-card p-4 text-sm text-ink">
+          <p role="alert" className="rounded-card border border-line bg-bg-card p-4 text-sm">
             {error}
           </p>
         )}
+      </div>
 
-        <div className="flex flex-col items-stretch gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-muted">
-            {ready ? `${filled} of ${QUESTIONS.length} answered` : "Answer at least three to continue"}
-          </p>
+      {/* Navigation */}
+      <div className="mt-12 flex items-center justify-between gap-4 border-t border-line pt-8">
+        <button
+          type="button"
+          onClick={() => setStep((s) => Math.max(0, s - 1))}
+          disabled={step === 0 || busy}
+          className="rounded-pill border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-bg-raise disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          Back
+        </button>
+
+        {step < STEPS.length - 1 ? (
           <button
-            type="submit"
-            disabled={!ready || busy}
-            className="inline-flex items-center justify-center rounded-pill bg-accent px-6 py-3 text-sm font-medium text-accent-ink transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+            type="button"
+            onClick={() => setStep((s) => s + 1)}
+            disabled={!valid[step]}
+            className="rounded-pill bg-accent px-6 py-3 text-sm font-medium text-accent-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {busy ? "Building your page…" : "Build my page"}
+            Continue
           </button>
-        </div>
-      </form>
+        ) : (
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!valid[step] || busy}
+            className="rounded-pill bg-accent px-6 py-3 text-sm font-medium text-accent-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy ? "Just a moment…" : "Start my 7 days free"}
+          </button>
+        )}
+      </div>
     </main>
   );
 }
