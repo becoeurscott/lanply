@@ -39,6 +39,7 @@ export const demoSpec: SiteSpec = {
       sub: "Answer five questions and we build a real page for your business — no cost, no card. Keep it live on your own domain for $20 a month, and cancel whenever you want.",
       primary: { label: "See my page free", href: "/brief" },
       secondary: { label: "How it works", href: "#process" },
+      visual: "mockup",
     },
     {
       type: "marquee",

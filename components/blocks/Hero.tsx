@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import type { Block } from "@/lib/spec";
 import { Button, Eyebrow } from "@/components/ui";
 import { rich } from "@/lib/text";
+import { HeroVisual } from "@/components/HeroVisual";
 
 type P = Extract<Block, { type: "hero" }>;
 
@@ -11,7 +12,7 @@ const rise = {
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-export function Hero({ eyebrow, headline, sub, primary, secondary, image }: P) {
+export function Hero({ eyebrow, headline, sub, primary, secondary, image, visual }: P) {
   return (
     <section className="glow relative overflow-hidden pt-32 pb-section sm:pt-40">
       <div className="container-x relative">
@@ -42,15 +43,21 @@ export function Hero({ eyebrow, headline, sub, primary, secondary, image }: P) {
           </motion.div>
         </motion.div>
 
-        {image && (
+        {(image || visual === "mockup") && (
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-14 overflow-hidden sm:mt-20 rounded-card border border-line bg-bg-raise shadow-2xl shadow-black/20"
+            className="mx-auto mt-14 max-w-4xl sm:mt-20"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image} alt="" className="w-full" />
+            {image ? (
+              <div className="overflow-hidden rounded-card border border-line bg-bg-raise shadow-2xl shadow-black/20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={image} alt="" className="w-full" />
+              </div>
+            ) : (
+              <HeroVisual />
+            )}
           </motion.div>
         )}
       </div>

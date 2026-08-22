@@ -21,6 +21,7 @@ const HeroBlock = z.object({
   sub: z.string(),
   primary: Cta,
   secondary: Cta.nullable(),
+  visual: z.enum(["mockup"]).nullable(),
 });
 
 const MarqueeBlock = z.object({

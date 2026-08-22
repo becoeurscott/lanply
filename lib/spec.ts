@@ -16,6 +16,8 @@ export type Block =
       primary: Cta;
       secondary?: Cta;
       image?: string;
+      /** Code-drawn product mockup, shown when no image is supplied. */
+      visual?: "mockup";
     }
   | { type: "logos"; caption?: string; items: string[] }
   | {
