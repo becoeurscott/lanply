@@ -2,13 +2,14 @@ import type { Block } from "@/lib/spec";
 import { Section } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 import { rich } from "@/lib/text";
+import { CostVisual } from "@/components/CostVisual";
 
 type P = Extract<Block, { type: "showcase" }>;
 
-export function Showcase({ heading, body, bullets, image, flip }: P) {
+export function Showcase({ heading, body, bullets, image, flip, visual }: P) {
   return (
     <Section>
-      <div className={`grid items-center gap-14 ${image ? "lg:grid-cols-2" : "mx-auto max-w-2xl text-center"}`}>
+      <div className={`grid items-center gap-14 ${image || visual ? "lg:grid-cols-2" : "mx-auto max-w-2xl text-center"}`}>
         <Reveal className={flip ? "lg:order-2" : ""}>
           <h2 className="font-display text-h2 font-medium text-balance">{rich(heading)}</h2>
           <p className="mt-5 text-lead text-ink-muted text-pretty">{body}</p>
@@ -23,6 +24,12 @@ export function Showcase({ heading, body, bullets, image, flip }: P) {
             </ul>
           )}
         </Reveal>
+
+        {!image && visual === "cost" && (
+          <Reveal delay={0.12} className={flip ? "lg:order-1" : ""}>
+            <CostVisual />
+          </Reveal>
+        )}
 
         {image && (
           <Reveal delay={0.12} className={flip ? "lg:order-1" : ""}>

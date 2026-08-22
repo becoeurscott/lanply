@@ -2,6 +2,7 @@ import type { Block } from "@/lib/spec";
 import { Eyebrow, Section } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 import { rich } from "@/lib/text";
+import { Icon } from "@/components/Icons";
 
 type P = Extract<Block, { type: "addons" }>;
 
@@ -30,11 +31,18 @@ export function Addons({ eyebrow, heading, sub, groups }: P) {
               <ul className="mt-6 divide-y divide-line">
                 {g.items.map((item) => (
                   <li key={item.name} className="flex items-baseline justify-between gap-6 py-3.5">
-                    <div>
+                    <div className="flex gap-3">
+                      {item.icon && (
+                        <span className="mt-0.5 shrink-0 text-accent">
+                          <Icon name={item.icon} className="size-4" />
+                        </span>
+                      )}
+                      <div>
                       <span className="text-sm">{item.name}</span>
                       {item.note && (
                         <span className="mt-0.5 block text-xs text-ink-muted">{item.note}</span>
                       )}
+                      </div>
                     </div>
                     <span className="shrink-0 font-display text-sm font-medium text-accent tabular-nums">
                       {item.price}

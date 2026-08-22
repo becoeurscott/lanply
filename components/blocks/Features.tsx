@@ -2,6 +2,7 @@ import type { Block } from "@/lib/spec";
 import { Card, Eyebrow, Section } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 import { rich } from "@/lib/text";
+import { Icon } from "@/components/Icons";
 
 type P = Extract<Block, { type: "features" }>;
 
@@ -19,8 +20,8 @@ export function Features({ eyebrow, heading, sub, items }: P) {
           <Reveal key={f.title} delay={i * 0.07}>
             <Card className="h-full">
               {f.icon && (
-                <div className="mb-5 grid size-10 place-items-center rounded-xl border border-line bg-bg text-lg">
-                  {f.icon}
+                <div className="mb-5 grid size-10 place-items-center rounded-xl border border-line bg-bg text-accent">
+                  <Icon name={f.icon} />
                 </div>
               )}
               <h3 className="font-display text-h4 font-medium">{f.title}</h3>

@@ -2,6 +2,7 @@ import type { Block } from "@/lib/spec";
 import { Eyebrow, Section } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 import { rich } from "@/lib/text";
+import { Icon } from "@/components/Icons";
 
 type P = Extract<Block, { type: "bento" }>;
 
@@ -23,8 +24,8 @@ export function Bento({ eyebrow, heading, sub, items }: P) {
           >
             <div className="group relative flex h-full flex-col justify-end overflow-hidden rounded-card border border-line bg-bg-card p-7 transition-colors duration-300 hover:border-ink-muted/30">
               {it.icon && (
-                <div className="mb-auto grid size-10 place-items-center rounded-xl border border-line bg-bg text-lg">
-                  {it.icon}
+                <div className="mb-auto grid size-10 place-items-center rounded-xl border border-line bg-bg text-accent">
+                  <Icon name={it.icon} />
                 </div>
               )}
               <h3 className="mt-6 font-display text-h4 font-medium">{it.title}</h3>

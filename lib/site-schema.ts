@@ -76,6 +76,7 @@ const ShowcaseBlock = z.object({
   body: z.string(),
   bullets: z.array(z.string()).nullable(),
   flip: z.boolean().nullable(),
+  visual: z.enum(["cost"]).nullable(),
 });
 
 const StatsBlock = z.object({
@@ -169,6 +170,7 @@ const AddonsBlock = z.object({
           name: z.string(),
           price: z.string(),
           note: z.string().nullable(),
+          icon: z.string().nullable(),
         }),
       ),
     }),

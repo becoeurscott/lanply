@@ -29,7 +29,16 @@ export type Block =
       sub?: string;
       items: { title: string; body: string; icon?: string }[];
     }
-  | { type: "showcase"; heading: string; body: string; bullets?: string[]; image?: string; flip?: boolean }
+  | {
+      type: "showcase";
+      heading: string;
+      body: string;
+      bullets?: string[];
+      image?: string;
+      flip?: boolean;
+      /** Code-drawn visual used when no image is supplied. */
+      visual?: "cost";
+    }
   | { type: "stats"; items: { value: string; label: string }[] }
   | { type: "testimonial"; quote: string; name: string; role: string; avatar?: string }
   | {
@@ -91,7 +100,7 @@ export type Block =
       sub?: string;
       groups: {
         title: string;
-        items: { name: string; price: string; note?: string }[];
+        items: { name: string; price: string; note?: string; icon?: string }[];
       }[];
     }
   | {

@@ -2,16 +2,22 @@ import type { SiteSpec } from "@/lib/spec";
 
 /* Nexus Site's own landing page.
 
-   Copy is the client's own, implemented as written. Deliberately no
-   testimonial or stats-of-results block: both need real customers, and
-   invented social proof on a live business page is a liability. */
+   Positioning: a managed premium website service — strategy, design, copy,
+   development, hosting and support on one subscription. How the work gets
+   produced internally is not customer-facing and is never mentioned here.
+
+   Two standing rules for this file:
+   - No testimonial or results-stat block until there are real customers.
+     Invented social proof on a live business page is a liability.
+   - Never say "free website" — the customer pays for the service. Say
+     "$0 design and setup fee" and state the price plainly. */
 
 export const demoSpec: SiteSpec = {
   meta: {
     name: "Nexus Site",
-    title: "Nexus Site — premium business websites without the agency bill",
+    title: "Nexus Site — premium websites for businesses, without the agency price",
     description:
-      "We build your premium business website for $0 upfront. Start with 7 days free, then $9.99 for your first month, then $20/month. Cancel future renewals anytime.",
+      "Premium website design, hosting and ongoing support on one simple subscription. $0 design and setup fee — 7 days free, then $9.99 your first month, $20/month after.",
   },
   theme: {
     mode: "dark",
@@ -26,7 +32,7 @@ export const demoSpec: SiteSpec = {
       logo: "Nexus Site",
       links: [
         { label: "How it works", href: "#process" },
-        { label: "What you get", href: "#features" },
+        { label: "What's included", href: "#features" },
         { label: "Pricing", href: "#pricing" },
         { label: "FAQ", href: "#faq" },
       ],
@@ -34,35 +40,13 @@ export const demoSpec: SiteSpec = {
     },
     {
       type: "hero",
-      eyebrow: "7 days free · then $9.99 first month",
-      headline: "Your business deserves better than an *AI-looking website*",
-      sub: "We build your premium business website for $0 upfront. No expensive agency bill, no complicated website builder, no generic AI template — just a professional, conversion-focused site designed around your business, your customers and your goals.",
+      eyebrow: "$0 design & setup fee",
+      headline: "A website that looks like it was *built for your business*",
+      sub: "Premium website design, hosting and ongoing support. One simple subscription.",
       primary: { label: "Get My Website", href: "/brief" },
       secondary: { label: "See how it works", href: "#process" },
-      note: "Hosting and domain are the only core costs. Cancel future renewals anytime.",
+      note: "7 days free, then $9.99 your first month and $20/month after. Domain priced separately. Cancel future renewals anytime.",
       visual: "mockup",
-    },
-    {
-      type: "versus",
-      eyebrow: "First impressions",
-      heading: "Look professional. *Get taken seriously.*",
-      sub: "Your website is often the first impression people have of your business. It should make them think one of these things, not the other.",
-      leftLabel: "“Made by AI in five minutes.”",
-      leftPoints: [
-        "Rainbow gradients doing the job typography should be doing",
-        "Five colours competing, so nothing is actually emphasised",
-        "Emoji standing in for art direction",
-        "Everything crammed together with no breathing room",
-        "Body text too small to read on a phone",
-      ],
-      rightLabel: "“These people are professional.”",
-      rightPoints: [
-        "Strategic structure, planned before anything is designed",
-        "Premium design with one accent colour, used on purpose",
-        "Conversion-focused content that moves visitors toward action",
-        "Generous space between sections so the eye can rest",
-        "Human-directed quality, checked before it goes live",
-      ],
     },
     {
       type: "marquee",
@@ -82,104 +66,96 @@ export const demoSpec: SiteSpec = {
     {
       type: "process",
       eyebrow: "How it works",
-      heading: "A website built around your business — *not a template*",
-      sub: "You don't need to learn WordPress. You don't need to understand hosting. You don't need to become a designer. You tell us about your business, and we handle the rest.",
+      heading: "You tell us about your business. *We handle the rest.*",
+      sub: "No builder to learn, no hosting to understand, no designer to hire.",
       steps: [
         {
           title: "Tell us about your business",
-          body: "Give us your business name, services, target customers and goals.",
+          body: "Your name, services, customers and goals. Five minutes, plain language.",
         },
         {
-          title: "We build your website",
-          body: "We create the structure, messaging and visual experience around your business.",
+          title: "We create your website",
+          body: "Strategy, structure, design and copy — built around what you actually sell.",
         },
         {
-          title: "Review your site",
-          body: "See your website and request changes before launch.",
+          title: "You review it",
+          body: "See your website and request changes before anything goes live.",
         },
         {
-          title: "Go live",
-          body: "Connect your domain and launch your new website.",
+          title: "We launch it",
+          body: "We connect your domain and put your site online.",
         },
         {
-          title: "We keep it running",
-          body: "Hosting, maintenance and support stay with Nexus Site.",
+          title: "We host and maintain it",
+          body: "Hosting, updates and support stay with us. Need a change? Ask.",
         },
       ],
     },
     {
+      type: "versus",
+      eyebrow: "The difference",
+      heading: "Built for your business. *Not for anyone's.*",
+      sub: "Most cheap websites are a stock layout with a new logo dropped in. Your customers can tell.",
+      leftLabel: "A generic template",
+      leftPoints: [
+        "Stock layout with your logo dropped into it",
+        "Colours that belong to somebody else's brand",
+        "Copy that could describe any business in your industry",
+        "Everything crowded together with no breathing room",
+        "Text too small to read comfortably on a phone",
+      ],
+      rightLabel: "Built for your business",
+      rightPoints: [
+        "Structure planned around what you actually sell",
+        "One accent colour, chosen for your brand",
+        "Copy written about your customers and your offer",
+        "Generous space so the important things stand out",
+        "Checked line by line before it launches",
+      ],
+    },
+    {
       type: "features",
-      eyebrow: "What you get",
-      heading: "Everything your business needs *to be taken seriously*",
+      eyebrow: "What's included",
+      heading: "Six things, *one subscription*",
+      sub: "Everything an agency would quote you for, without the quote.",
       items: [
         {
-          icon: "◈",
-          title: "Premium website design",
-          body: "A modern website designed specifically for your business.",
+          icon: "target",
+          title: "Strategy",
+          body: "We work out what your site needs to say, to whom, and in what order — before anything is designed.",
         },
         {
-          icon: "◎",
-          title: "Conversion-focused structure",
-          body: "Clear sections, calls-to-action and contact paths designed to move visitors toward action.",
+          icon: "layout",
+          title: "Design",
+          body: "A premium, modern design made for your business, not adapted from a stock layout.",
         },
         {
-          icon: "▤",
-          title: "Mobile-first experience",
-          body: "Your website looks great on phones, tablets and desktops.",
-        },
-        {
-          icon: "✎",
-          title: "Professional content",
+          icon: "pen",
+          title: "Copy",
           body: "Clear messaging that explains what you do, who you help and why customers should choose you.",
         },
         {
-          icon: "⚑",
-          title: "SEO foundation",
-          body: "Search-friendly structure, metadata and essential technical SEO setup.",
+          icon: "code",
+          title: "Development",
+          body: "Built properly: fast, mobile-first, and search-friendly from the first day.",
         },
         {
-          icon: "◐",
-          title: "Fast, secure hosting",
-          body: "Your website stays online with SSL and managed hosting.",
+          icon: "shield",
+          title: "Hosting",
+          body: "Fast, secure managed hosting with SSL. Your website stays online and we keep an eye on it.",
         },
         {
-          icon: "⌘",
-          title: "Domain connection",
-          body: "Use your own business domain, or get help choosing one.",
-        },
-        {
-          icon: "◔",
-          title: "Ongoing maintenance",
-          body: "Your website doesn't get abandoned after launch.",
-        },
-        {
-          icon: "◇",
-          title: "Human-directed quality",
-          body: "Technology helps us work faster. Your final website still needs to look, feel and read like a real business.",
+          icon: "refresh",
+          title: "Support",
+          body: "Your website doesn't get abandoned after launch. Need something changed? Just ask.",
         },
       ],
     },
     {
       type: "showcase",
       heading: "Stop paying thousands *for a website*",
-      body: "Traditional agencies can turn a simple business website into a major project. Nexus Site keeps the model simple: one website, one subscription.",
-      bullets: [
-        "Design fees",
-        "Development fees",
-        "Monthly maintenance",
-        "Hosting",
-        "Updates",
-        "Then another invoice when you need a change",
-      ],
-    },
-    {
-      type: "stats",
-      items: [
-        { value: "$0", label: "Website design & setup" },
-        { value: "$0", label: "Development fee" },
-        { value: "$0", label: "Setup fee" },
-        { value: "$20/mo", label: "Hosting + website service" },
-      ],
+      body: "Traditional agencies turn a simple business website into a major project — design fees, development fees, maintenance, hosting, then another invoice every time you need a change. We keep it to one line.",
+      visual: "cost",
     },
     {
       type: "plans",
@@ -235,14 +211,14 @@ export const demoSpec: SiteSpec = {
         },
       ],
       includes: [
-        "Website design and setup included",
+        "$0 design and setup fee",
+        "Strategy, design, copy and development",
         "Fast, secure managed hosting with SSL",
         "Connect your own domain, or get help choosing one",
-        "Mobile-first build",
-        "SEO foundation",
         "Ongoing maintenance and support",
+        "7 days free, cancel future renewals anytime",
       ],
-      note: "Prepaid plans reduce your effective monthly price. Future renewals can be cancelled anytime. Domain registration is priced separately according to the domain extension you choose.",
+      note: "Prepaid plans reduce your effective monthly price. Domain registration is priced separately according to the extension you choose.",
     },
     {
       type: "addons",
@@ -255,13 +231,15 @@ export const demoSpec: SiteSpec = {
           items: [
             {
               name: "Online Booking",
+              icon: "calendar",
               price: "+$9/mo",
-              note: "Let customers book appointments directly. For salons, barbers, consultants, coaches, photographers and service providers.",
+              note: "Customers book appointments straight from your website.",
             },
             {
               name: "Business Automation",
+              icon: "workflow",
               price: "+$19/mo",
-              note: "Capture leads, send notifications, trigger follow-ups and connect your forms to your tools.",
+              note: "Capture leads, send notifications and trigger follow-ups.",
             },
           ],
         },
@@ -270,53 +248,25 @@ export const demoSpec: SiteSpec = {
           items: [
             {
               name: "Professional Logo",
+              icon: "hexagon",
               price: "$49",
-              note: "One-time. A brand identity that matches the quality of your business.",
+              note: "One-time.",
             },
             {
               name: "Brand Kit",
+              icon: "palette",
               price: "$99",
-              note: "One-time. Logo, colour palette, typography and basic brand guidelines.",
+              note: "One-time. Logo, colours, typography and basic guidelines.",
             },
           ],
         },
       ],
     },
     {
-      type: "bento",
-      eyebrow: "Built for real businesses",
-      heading: "Your website should *work while you do*",
-      sub: "A website isn't just a digital business card. It should answer questions, build trust, show what you offer, make contacting you easy, and turn visitors into customers.",
-      items: [
-        {
-          span: "wide",
-          title: "“I need customers.”",
-          body: "Your website clearly communicates what you offer and gives visitors an obvious next step.",
-        },
-        {
-          title: "“I need to look professional.”",
-          body: "Your site presents your business like an established brand.",
-        },
-        {
-          title: "“I don't have time to build a website.”",
-          body: "We handle the technical work.",
-        },
-        {
-          title: "“I don't want to spend thousands.”",
-          body: "Your website design and setup are included.",
-        },
-        {
-          span: "wide",
-          title: "“I might need more later.”",
-          body: "Start with the essentials and add booking, automation, branding and other features when you need them.",
-        },
-      ],
-    },
-    {
       type: "cta",
-      heading: "Build an online presence your customers *can trust*",
-      sub: "Your domain is waiting. Your customers are searching. Let's give them somewhere worth landing. Premium website, $0 upfront, $9.99 first month, $20/month after. Cancel future renewals anytime.",
-      primary: { label: "Start my 7-day free trial", href: "/brief" },
+      heading: "Give your customers somewhere *worth landing*",
+      sub: "$0 design and setup fee. 7 days free, then $9.99 your first month and $20/month after. Cancel future renewals anytime.",
+      primary: { label: "Get My Website", href: "/brief" },
       secondary: { label: "Read the FAQ", href: "#faq" },
     },
     {
@@ -324,40 +274,28 @@ export const demoSpec: SiteSpec = {
       heading: "Frequently asked questions",
       items: [
         {
-          q: "Is the website really free?",
-          a: "Your website design and initial setup are included at no upfront design or development charge. Nexus Site charges for the website service, hosting and related infrastructure.",
+          q: "What does $0 upfront actually mean?",
+          a: "There is no design or setup fee. You pay for the website service, hosting and support: 7 days free, $9.99 for your first month, then $20 a month, or less on a prepaid plan.",
         },
         {
-          q: "Do I need to know how to build websites?",
-          a: "No. Tell us about your business and we handle the website creation.",
+          q: "Do I need to know anything technical?",
+          a: "No. Tell us about your business and we handle the design, the build, the launch and the hosting.",
         },
         {
           q: "Can I use my own domain?",
-          a: "Yes. You can connect your existing domain or purchase a new one.",
-        },
-        {
-          q: "What happens after the 7-day trial?",
-          a: "Your first paid month is $9.99. After the first month, the standard monthly price is $20 unless you choose a prepaid savings plan.",
+          a: "Yes. Connect a domain you already own, or we can help you choose and register a new one. Domain registration is priced separately by extension.",
         },
         {
           q: "Can I cancel?",
           a: "Yes. You can cancel future renewals at any time. Prepaid plans are subject to their stated refund terms.",
         },
         {
-          q: "Can I add booking later?",
-          a: "Yes. You can start with the website and add features such as booking and automation whenever your business needs them.",
-        },
-        {
-          q: "Is the website generated entirely by AI?",
-          a: "Technology may assist our process, but Nexus Site is not selling an untouched AI-generated template. The goal is a polished website built around your business and its customers.",
+          q: "Can I add booking or automation later?",
+          a: "Yes. Start with the website and add features whenever your business needs them.",
         },
         {
           q: "Can you redesign my existing website?",
-          a: "Yes. Nexus Site can offer website redesign as part of the service.",
-        },
-        {
-          q: "What kind of businesses can use Nexus Site?",
-          a: "Almost any business that needs a professional online presence, including service businesses, restaurants, professionals, consultants, startups, creators and local businesses.",
+          a: "Yes. Website redesign is part of the service.",
         },
       ],
     },
@@ -365,13 +303,13 @@ export const demoSpec: SiteSpec = {
     {
       type: "footer",
       logo: "Nexus Site",
-      blurb: "Your business. Your brand. Your website. Premium websites without the premium agency bill.",
+      blurb: "Premium websites for businesses. Without the agency price.",
       columns: [
         {
           title: "Product",
           links: [
             { label: "How it works", href: "#process" },
-            { label: "What you get", href: "#features" },
+            { label: "What's included", href: "#features" },
             { label: "Pricing", href: "#pricing" },
             { label: "Add-ons", href: "#addons" },
           ],
