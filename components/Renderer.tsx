@@ -17,6 +17,7 @@ import { Compare } from "@/components/blocks/Compare";
 import { Wordmark } from "@/components/blocks/Wordmark";
 import { Plans } from "@/components/blocks/Plans";
 import { Addons } from "@/components/blocks/Addons";
+import { Versus } from "@/components/blocks/Versus";
 
 function renderBlock(b: Block, i: number) {
   switch (b.type) {
@@ -36,6 +37,7 @@ function renderBlock(b: Block, i: number) {
     case "compare": return <Compare key={i} {...b} />;
     case "plans": return <Plans key={i} {...b} />;
     case "addons": return <Addons key={i} {...b} />;
+    case "versus": return <Versus key={i} {...b} />;
     case "wordmark": return <Wordmark key={i} {...b} />;
     case "footer": return <Footer key={i} {...b} />;
   }

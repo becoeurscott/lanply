@@ -92,6 +92,16 @@ export type Block =
         items: { name: string; price: string; note?: string }[];
       }[];
     }
+  | {
+      type: "versus";
+      eyebrow?: string;
+      heading: string;
+      sub?: string;
+      leftLabel: string;
+      leftPoints: string[];
+      rightLabel: string;
+      rightPoints: string[];
+    }
   | { type: "wordmark"; text: string }
   | { type: "footer"; logo: string; blurb?: string; columns?: { title: string; links: Cta[] }[]; legal?: string };
 

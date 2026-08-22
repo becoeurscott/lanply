@@ -115,6 +115,28 @@ export const demoSpec: SiteSpec = {
       ],
     },
     {
+      type: "versus",
+      eyebrow: "The difference",
+      heading: "Spot the difference *in two seconds*",
+      sub: "The difference is not how fast a page was built. It is whether anyone decided how it should look before it was.",
+      leftLabel: "The usual AI website",
+      leftPoints: [
+        "Rainbow gradients doing the job typography should be doing",
+        "Five colours competing, so nothing is actually emphasised",
+        "Emoji standing in for art direction",
+        "Everything crammed together with no breathing room",
+        "Body text so small nobody reads it on a phone",
+      ],
+      rightLabel: "What we build",
+      rightPoints: [
+        "One accent colour, used sparingly and on purpose",
+        "Tight letter-spacing on large headings, the way print does it",
+        "Generous space between sections so the eye can rest",
+        "One clear thing to read first, and one thing to click",
+        "Checked and finished by a person before it goes live",
+      ],
+    },
+    {
       type: "compare",
       heading: "How it compares",
       sub: "Including the parts where the alternatives beat us.",

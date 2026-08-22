@@ -174,6 +174,17 @@ const AddonsBlock = z.object({
   ),
 });
 
+const VersusBlock = z.object({
+  type: z.literal("versus"),
+  eyebrow: z.string().nullable(),
+  heading: z.string(),
+  sub: z.string().nullable(),
+  leftLabel: z.string(),
+  leftPoints: z.array(z.string()),
+  rightLabel: z.string(),
+  rightPoints: z.array(z.string()),
+});
+
 const WordmarkBlock = z.object({ type: z.literal("wordmark"), text: z.string() });
 
 const FooterBlock = z.object({
@@ -203,6 +214,7 @@ export const BlockSchema = z.discriminatedUnion("type", [
   CtaBlock,
   PlansBlock,
   AddonsBlock,
+  VersusBlock,
   WordmarkBlock,
   FooterBlock,
 ]);
