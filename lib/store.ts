@@ -88,13 +88,34 @@ export async function findAccountByEmail(email: string): Promise<Account | null>
   }
 }
 
+/* Windows and file-sync clients (OneDrive, Dropbox) briefly lock files
+   they are indexing, which surfaces as EPERM/EBUSY on an otherwise valid
+   write. Those are transient, so retry briefly before giving up. */
+const TRANSIENT = new Set(["EPERM", "EBUSY", "EMFILE", "ENFILE", "EAGAIN"]);
+
+async function writeWithRetry(file: string, contents: string, flag: string): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      await fs.writeFile(file, contents, { encoding: "utf8", flag });
+      return;
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code ?? "";
+      if (code === "EEXIST" || !TRANSIENT.has(code)) throw err;
+      lastError = err;
+      await new Promise((r) => setTimeout(r, 40 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 /** Returns false when the email is already registered. */
 export async function createAccount(account: Account): Promise<boolean> {
   await ensureDir(ACCOUNT_DIR);
   const file = path.join(ACCOUNT_DIR, `${emailKey(account.email)}.json`);
   try {
     // wx fails if the file exists — avoids a check-then-write race.
-    await fs.writeFile(file, JSON.stringify(account, null, 2), { encoding: "utf8", flag: "wx" });
+    await writeWithRetry(file, JSON.stringify(account, null, 2), "wx");
     return true;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "EEXIST") return false;

@@ -63,7 +63,17 @@ export async function POST(req: Request) {
       console.error(error.message);
       return NextResponse.json({ error: "Accounts are not configured yet." }, { status: 503 });
     }
-    console.error("signup failed", error);
-    return NextResponse.json({ error: "Could not create your account." }, { status: 500 });
+    // Always log the real cause; surface it outside production so a
+    // failure is diagnosable instead of just "something went wrong".
+    console.error("signup failed:", error);
+    const code = (error as NodeJS.ErrnoException)?.code;
+    const detail =
+      process.env.NODE_ENV === "production"
+        ? undefined
+        : `${code ? code + ": " : ""}${error instanceof Error ? error.message : String(error)}`;
+    return NextResponse.json(
+      { error: "Could not create your account.", code, detail },
+      { status: 500 },
+    );
   }
 }

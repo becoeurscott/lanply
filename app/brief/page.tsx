@@ -206,7 +206,9 @@ export default function BriefPage() {
 
       if (!res.ok) {
         if (result?.code === "exists") setMode("signin");
-        throw new Error(result?.error ?? "Could not continue.");
+        throw new Error(
+          [result?.error ?? "Could not continue.", result?.detail].filter(Boolean).join(" — "),
+        );
       }
 
       setAccount({ email: result.email, name: result.name ?? "" });
