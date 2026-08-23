@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { demoSpec } from "@/lib/demo-spec";
 
-/* Onboarding.
+/* Signup, then onboarding.
 
-   Five short steps rather than one long form — a wall of textareas is where
-   briefs get abandoned. Answers persist to localStorage so a refresh or a
-   phone call mid-flow doesn't cost the customer their work.
+   Clicking "Get My Website" lands on a signup form, the way it would for
+   any service — the account is what later carries the dashboard, build
+   status and support thread.
 
-   The brief is saved BEFORE checkout is attempted, so a lead is captured
-   even when payments aren't configured or the customer bails at Stripe. */
+   The brief persists to localStorage so an interruption costs nothing.
+   The PASSWORD never does: credentials live in component state only and
+   are gone the moment the tab closes. */
 
 const plansBlock = demoSpec.blocks.find((b) => b.type === "plans");
 const TERMS = plansBlock?.type === "plans" ? plansBlock.terms : [];
@@ -46,15 +47,15 @@ const ADDON_OPTIONS = [
   { id: "automation", label: "Business Automation", price: "+$19/mo", note: "Capture leads and trigger follow-ups." },
 ];
 
-const STEPS = ["Your business", "Your customers", "Look & feel", "Your plan", "Your details"];
-const STORAGE_KEY = "nexus_onboarding_v1";
+const STEPS = ["Create account", "Your business", "Your customers", "Look & feel", "Your plan", "Finish"];
+const STORAGE_KEY = "nexus_onboarding_v2";
 
 type Data = {
   business: { name: string; sells: string; type: string };
   customers: { who: string; goals: string[] };
   style: { colour: string; tone: string; hasLogo: string; existingSite: string };
   plan: { term: string; addons: string[] };
-  contact: { name: string; email: string; phone: string; domain: string; domainName: string };
+  contact: { phone: string; domain: string; domainName: string };
 };
 
 const EMPTY: Data = {
@@ -62,10 +63,11 @@ const EMPTY: Data = {
   customers: { who: "", goals: [] },
   style: { colour: "", tone: "", hasLogo: "", existingSite: "" },
   plan: { term: TERMS.find((t) => t.featured)?.id ?? "monthly", addons: [] },
-  contact: { name: "", email: "", phone: "", domain: "", domainName: "" },
+  contact: { phone: "", domain: "", domainName: "" },
 };
 
-/* ── Field primitives ─────────────────────────────────────────── */
+const fieldClass =
+  "w-full rounded-card border border-line bg-bg-card p-4 text-sm leading-relaxed outline-none transition-colors placeholder:text-ink-muted/50 focus:border-accent";
 
 function Label({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
@@ -75,9 +77,6 @@ function Label({ children, hint }: { children: React.ReactNode; hint?: string })
     </div>
   );
 }
-
-const fieldClass =
-  "w-full rounded-card border border-line bg-bg-card p-4 text-sm leading-relaxed outline-none transition-colors placeholder:text-ink-muted/50 focus:border-accent";
 
 function Choice({
   options,
@@ -115,7 +114,8 @@ function Choice({
             style={{
               borderColor: on ? "var(--accent)" : "var(--line)",
               background: on ? "color-mix(in oklab, var(--accent) 10%, var(--bg-card))" : "var(--bg-card)",
-              transition: "border-color 250ms cubic-bezier(0.16,1,0.3,1), background 250ms cubic-bezier(0.16,1,0.3,1)",
+              transition:
+                "border-color 250ms cubic-bezier(0.16,1,0.3,1), background 250ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
             <div className="flex items-baseline justify-between gap-3">
@@ -130,23 +130,34 @@ function Choice({
   );
 }
 
-/* ── Page ─────────────────────────────────────────────────────── */
-
 export default function BriefPage() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<Data>(EMPTY);
+  const [restored, setRestored] = useState(false);
+
+  // Credentials — component state only, never persisted.
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [auth, setAuth] = useState({ name: "", email: "", password: "" });
+  const [account, setAccount] = useState<{ email: string; name: string } | null>(null);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [received, setReceived] = useState(false);
-  const [restored, setRestored] = useState(false);
 
-  // Restore once on mount, then persist on every change.
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setData({ ...EMPTY, ...JSON.parse(saved) });
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.data) setData({ ...EMPTY, ...parsed.data });
+        // Email and name only — a password is never written to storage.
+        if (parsed.account?.email) {
+          setAccount(parsed.account);
+          setStep((s) => (s === 0 ? 1 : s));
+        }
+      }
     } catch {
-      /* corrupt or unavailable storage is not worth surfacing */
+      /* corrupt or unavailable storage isn't worth surfacing */
     }
     setRestored(true);
   }, []);
@@ -154,25 +165,59 @@ export default function BriefPage() {
   useEffect(() => {
     if (!restored) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, account }));
     } catch {
-      /* private mode, quota — the form still works in memory */
+      /* private mode or quota — the form still works in memory */
     }
-  }, [data, restored]);
+  }, [data, account, restored]);
 
   function set<K extends keyof Data>(key: K, patch: Partial<Data[K]>) {
     setData((d) => ({ ...d, [key]: { ...d[key], ...patch } }));
   }
 
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(auth.email.trim());
+  const passwordOk = auth.password.length >= 8;
+
   const valid = [
+    emailOk && passwordOk,
     data.business.name.trim().length > 0 && data.business.sells.trim().length >= 10,
-    true, // step 2 is optional — better a thin brief than an abandoned one
+    true,
     true,
     Boolean(data.plan.term),
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contact.email.trim()),
+    true,
   ];
 
   const term = TERMS.find((t) => t.id === data.plan.term);
+
+  async function authenticate() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/auth/${mode === "signup" ? "signup" : "login"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          mode === "signup"
+            ? { name: auth.name, email: auth.email, password: auth.password }
+            : { email: auth.email, password: auth.password },
+        ),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        if (result?.code === "exists") setMode("signin");
+        throw new Error(result?.error ?? "Could not continue.");
+      }
+
+      setAccount({ email: result.email, name: result.name ?? "" });
+      setAuth((a) => ({ ...a, password: "" })); // drop it as soon as it's spent
+      setStep(1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit() {
     setBusy(true);
@@ -181,12 +226,14 @@ export default function BriefPage() {
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          contact: { ...data.contact, name: account?.name ?? "", email: account?.email ?? "" },
+        }),
       });
       const saved = await res.json();
       if (!res.ok) throw new Error(saved?.error ?? "Could not save your details.");
 
-      // Brief is safe. Now try to start checkout.
       const co = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -200,7 +247,6 @@ export default function BriefPage() {
         return;
       }
 
-      // Payments not configured yet — the brief is still captured.
       localStorage.removeItem(STORAGE_KEY);
       setReceived(true);
     } catch (err) {
@@ -220,7 +266,7 @@ export default function BriefPage() {
           Thanks — we have <span className="text-accent">everything we need</span>
         </h1>
         <p className="mt-5 text-lead text-ink-muted text-pretty">
-          We&rsquo;ll email {data.contact.email} within one working day to confirm your plan and get
+          We&rsquo;ll email {account?.email} within one working day to confirm your plan and get
           started on your website.
         </p>
         <Link
@@ -233,13 +279,110 @@ export default function BriefPage() {
     );
   }
 
+  /* ── Signup / sign in ──────────────────────────────────────── */
+  if (step === 0) {
+    const signup = mode === "signup";
+    return (
+      <main className="container-x flex min-h-screen max-w-md flex-col justify-center py-20">
+        <Link href="/" className="font-display text-[15px] font-semibold tracking-tight">
+          Nexus Site
+        </Link>
+
+        <h1 className="mt-10 font-display text-h2 font-medium text-balance">
+          {signup ? "Create your account" : "Welcome back"}
+        </h1>
+        <p className="mt-4 text-lead text-ink-muted text-pretty">
+          {signup
+            ? "Start your 7 days free. We'll ask about your business next."
+            : "Sign in to pick up where you left off."}
+        </p>
+
+        <form
+          className="mt-10 space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (valid[0] && !busy) authenticate();
+          }}
+        >
+          {signup && (
+            <input
+              className={fieldClass}
+              value={auth.name}
+              autoComplete="name"
+              placeholder="Your name"
+              onChange={(e) => setAuth((a) => ({ ...a, name: e.target.value }))}
+            />
+          )}
+          <input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            className={fieldClass}
+            value={auth.email}
+            placeholder="you@yourbusiness.com"
+            onChange={(e) => setAuth((a) => ({ ...a, email: e.target.value }))}
+          />
+          <div>
+            <input
+              type="password"
+              autoComplete={signup ? "new-password" : "current-password"}
+              className={fieldClass}
+              value={auth.password}
+              placeholder="Password"
+              onChange={(e) => setAuth((a) => ({ ...a, password: e.target.value }))}
+            />
+            {signup && (
+              <p className="mt-2 text-xs text-ink-muted">At least 8 characters.</p>
+            )}
+          </div>
+
+          {error && (
+            <p role="alert" className="rounded-card border border-line bg-bg-card p-4 text-sm">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={!valid[0] || busy}
+            className="w-full rounded-pill bg-accent px-6 py-3.5 text-sm font-medium text-accent-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy ? "Just a moment…" : signup ? "Create account" : "Sign in"}
+          </button>
+        </form>
+
+        <p className="mt-7 text-sm text-ink-muted">
+          {signup ? "Already have an account?" : "Need an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setMode(signup ? "signin" : "signup");
+              setError(null);
+            }}
+            className="text-accent underline underline-offset-4"
+          >
+            {signup ? "Sign in" : "Create one"}
+          </button>
+        </p>
+
+        <p className="mt-10 text-xs leading-relaxed text-ink-muted">
+          You won&rsquo;t be charged during your 7-day trial. After it ends, your first month is
+          $9.99 on the monthly plan, then $20/month. Cancel future renewals anytime.
+        </p>
+      </main>
+    );
+  }
+
+  /* ── Onboarding steps ──────────────────────────────────────── */
   return (
     <main className="container-x max-w-2xl py-20 sm:py-24">
-      <Link href="/" className="font-display text-[15px] font-semibold tracking-tight">
-        Nexus Site
-      </Link>
+      <div className="flex items-baseline justify-between gap-4">
+        <Link href="/" className="font-display text-[15px] font-semibold tracking-tight">
+          Nexus Site
+        </Link>
+        {account && <span className="text-xs text-ink-muted">{account.email}</span>}
+      </div>
 
-      {/* Progress */}
       <div className="mt-10">
         <div className="flex items-baseline justify-between">
           <p className="text-xs font-medium tracking-widest text-ink-muted uppercase">
@@ -260,7 +403,7 @@ export default function BriefPage() {
       </div>
 
       <div className="mt-12 space-y-10">
-        {step === 0 && (
+        {step === 1 && (
           <>
             <div>
               <Label>What is your business called?</Label>
@@ -292,12 +435,10 @@ export default function BriefPage() {
           </>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <>
             <div>
-              <Label hint="Who are they, and what problem are you solving?">
-                Who buys from you?
-              </Label>
+              <Label hint="Who are they, and what problem are you solving?">Who buys from you?</Label>
               <textarea
                 rows={4}
                 className={fieldClass}
@@ -318,10 +459,10 @@ export default function BriefPage() {
           </>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <>
             <div>
-              <Label hint="Leave blank and we&rsquo;ll choose one that suits your industry.">
+              <Label hint="Leave blank and we'll choose one that suits your industry.">
                 Brand colour
               </Label>
               <input
@@ -364,7 +505,7 @@ export default function BriefPage() {
           </>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <>
             <div>
               <Label hint="All plans include 7 days free. Longer terms cost less per month.">
@@ -393,31 +534,10 @@ export default function BriefPage() {
           </>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
           <>
             <div>
-              <Label>Your name</Label>
-              <input
-                className={fieldClass}
-                value={data.contact.name}
-                placeholder="Alex Moreau"
-                onChange={(e) => set("contact", { name: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label hint="Where we send your website link and receipt.">Email</Label>
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                className={fieldClass}
-                value={data.contact.email}
-                placeholder="you@yourbusiness.com"
-                onChange={(e) => set("contact", { email: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label hint="Optional.">Phone</Label>
+              <Label hint="Optional — only if you'd rather we called.">Phone</Label>
               <input
                 type="tel"
                 inputMode="tel"
@@ -485,12 +605,11 @@ export default function BriefPage() {
         )}
       </div>
 
-      {/* Navigation */}
       <div className="mt-12 flex items-center justify-between gap-4 border-t border-line pt-8">
         <button
           type="button"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0 || busy}
+          onClick={() => setStep((s) => Math.max(1, s - 1))}
+          disabled={step <= 1 || busy}
           className="rounded-pill border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-bg-raise disabled:cursor-not-allowed disabled:opacity-30"
         >
           Back
@@ -509,7 +628,7 @@ export default function BriefPage() {
           <button
             type="button"
             onClick={submit}
-            disabled={!valid[step] || busy}
+            disabled={busy}
             className="rounded-pill bg-accent px-6 py-3 text-sm font-medium text-accent-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy ? "Just a moment…" : "Start my 7 days free"}
